@@ -1,0 +1,51 @@
+- name: Crear instancia
+  hosts: localhost
+  connection: local
+  
+  tasks:
+    - name: Launch an instance
+      ec2_instance:
+        name: myinstance
+        key_name: "{{ vars.mykeyvar }}"
+        vpc_subnet_id: "{{ vars.mysubnet }}"
+        security_group: "{{ vars.mysg }}"
+        instance_type:  "t2.micro"
+        image_id:  ami-02df9ea15c1778c9c 
+        network:
+          assign_public_ip: true
+        wait: true
+        wait_timeout: 300
+        volumes:
+          - device_name: /dev/sdf
+            ebs:
+              volume_size: 8
+              delete_on_termination: true
+        tags:
+          Name: myinstance
+      register: vinstance
+
+    - name: Add created instance to inventory
+      add_host:
+        name: "{{ vinstance.instances[0].network_interfaces[0].association.public_ip }}"
+        groups: ec2
+        ansible_ssh_user: ubuntu
+
+- name: Añadir cosas a la instancia
+  hosts: ec2
+  become: true
+
+  roles:
+    - lesfurets.python3
+    
+  tasks:
+    - name: Install the package python3-flask
+      apt:
+        name: python3-flask
+    
+    - name: copy 
+      copy:
+        src: "{{ vars.local_path }}"
+        dest: /home/ubuntu/
+    
+    - name:
+      shell: nohup /usr/bin/python3 web.py &

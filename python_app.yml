@@ -1,0 +1,8 @@
+- name:
+  vars:
+    mysubnet: subnet-xxxxx
+    mysg: sg-xxxxx
+    mykeyvar: mykey
+    local_path: ./web.py
+                        
+  import_playbook: playbook.yml                        
